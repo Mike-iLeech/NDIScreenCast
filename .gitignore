@@ -1,0 +1,15 @@
+/*
+!/.gitignore
+!/README.md
+!/AndroidManifest.xml
+!/build.ps1
+!/setup.ps1
+!/src/
+!/native/
+!/res/
+!/docs/
+!/.github/
+!/release.ps1
+*.jks
+*.keystore
+local.ps1
