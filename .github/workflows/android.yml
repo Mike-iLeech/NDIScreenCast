@@ -1,0 +1,25 @@
+name: Android build
+on:
+  push:
+    branches: [feat/android-ndi-cast, bootstrap]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '21'
+      - name: Install SDKs
+        shell: pwsh
+        run: ./setup.ps1
+      - name: Compile and verify APK (CI key only)
+        shell: pwsh
+        env:
+          NDI_SIGNING_PASSWORD: ci-test-key-password
+        run: ./build.ps1
