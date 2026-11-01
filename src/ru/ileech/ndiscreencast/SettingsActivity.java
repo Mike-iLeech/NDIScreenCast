@@ -20,7 +20,7 @@ public class SettingsActivity extends Activity {
   else scroll.setOnApplyWindowInsetsListener((v,i)->{v.setPadding(i.getSystemWindowInsetLeft(),i.getSystemWindowInsetTop(),i.getSystemWindowInsetRight(),i.getSystemWindowInsetBottom());return i;});
   TextView back=text("‹  Настройки",26);back.setPadding(0,dp(8),0,dp(16));back.setOnClickListener(v->finish());root.addView(back);gap(root,20);
   toggle(root,"Отображать битрейт потока","showBitrate",false);toggle(root,"Включить автообновление","autoUpdate",true);
-  root.addView(text("Автообновление проверяет GitHub Releases при открытии приложения и примерно раз в 6 часов. Новая версия загружается автоматически. Установку подтверждает Android. Во время эфира установка не предлагается.",14));gap(root,20);
+  root.addView(text("Автообновление проверяет GitHub Releases при открытии приложения и в фоне с интервалом 24 часа. Новая версия загружается автоматически. Установку подтверждает Android. Во время эфира установка не предлагается.",14));gap(root,20);
   TextView check=text("Проверить обновления",16);check.setGravity(Gravity.CENTER);check.setPadding(dp(18),dp(14),dp(18),dp(14));check.setBackground(Controls.pill(this,0xff254b3a));root.addView(check);check.setOnClickListener(v->{Updates.check(this,true,null);result.setText(Updates.status);});gap(root,16);
   result=text(Updates.status,14);root.addView(result);gap(root,16);
   try{root.addView(text("Версия "+getPackageManager().getPackageInfo(getPackageName(),0).versionName,14));}catch(Exception ignored){}

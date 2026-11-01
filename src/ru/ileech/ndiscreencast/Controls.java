@@ -20,12 +20,29 @@ final class Controls {
   @Override public void setAlpha(int n){p.setAlpha(n);}@Override public void setColorFilter(ColorFilter f){p.setColorFilter(f);}@Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
  }
  static void styleSpinner(Spinner spinner,Context c,String[] values){
-  spinner.setBackground(pill(c,0xff1e293b));spinner.setPopupBackgroundDrawable(pill(c,0xff253149));
+  spinner.setGravity(Gravity.CENTER);spinner.setBackground(pill(c,0xff1e293b));
+  GradientDrawable popup=new GradientDrawable(){@Override public boolean getPadding(Rect out){out.set(dp(c,8),dp(c,10),dp(c,8),dp(c,10));return true;}};
+  popup.setColor(0xff253149);popup.setCornerRadius(dp(c,24));popup.setStroke(dp(c,1),0xff344059);spinner.setPopupBackgroundDrawable(popup);
   spinner.setAdapter(new ArrayAdapter<String>(c,android.R.layout.simple_spinner_item,values){
-   private TextView item(int position,boolean popup){TextView t=new TextView(c);t.setText(getItem(position));t.setTextSize(15);t.setTextColor(Color.WHITE);t.setGravity(Gravity.CENTER_VERTICAL);t.setSingleLine(true);t.setEllipsize(TextUtils.TruncateAt.END);t.setPadding(dp(c,16),dp(c,10),dp(c,14),dp(c,10));t.setMinHeight(dp(c,48));if(!popup){t.setCompoundDrawables(null,null,new Arrow(c),null);t.setCompoundDrawablePadding(dp(c,6));}return t;}
+   private TextView item(int position,boolean popup){
+    TextView t=new TextView(c);t.setText(getItem(position));t.setTextColor(Color.WHITE);t.setGravity(Gravity.CENTER);
+    t.setMaxLines(1);t.setHorizontallyScrolling(false);t.setEllipsize(TextUtils.TruncateAt.END);
+    t.setPadding(dp(c,popup?18:10),dp(c,12),dp(c,popup?18:10),dp(c,12));t.setMinHeight(dp(c,48));
+    t.setAutoSizeTextTypeUniformWithConfiguration(11,15,1,android.util.TypedValue.COMPLEX_UNIT_SP);
+    if(!popup){Drawable balance=new ColorDrawable(Color.TRANSPARENT);balance.setBounds(0,0,dp(c,14),dp(c,14));t.setCompoundDrawables(balance,null,new Arrow(c),null);t.setCompoundDrawablePadding(dp(c,4));}
+    return t;
+   }
    @Override public View getView(int p,View v,android.view.ViewGroup parent){return item(p,false);}
    @Override public View getDropDownView(int p,View v,android.view.ViewGroup parent){return item(p,true);}
   });
+ }
+ static final class Logo extends LinearLayout {
+  Logo(Context c){super(c);setGravity(Gravity.CENTER_VERTICAL);setContentDescription("NDI ScreenCast");
+   ImageView icon=new ImageView(c);icon.setImageResource(R.drawable.ic_launcher);icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);addView(icon,new LinearLayout.LayoutParams(dp(c,44),dp(c,44)));
+   LinearLayout words=new LinearLayout(c);words.setOrientation(VERTICAL);LinearLayout.LayoutParams layout=new LinearLayout.LayoutParams(-2,-2);layout.leftMargin=dp(c,10);addView(words,layout);
+   TextView ndi=new TextView(c);ndi.setText("NDI");ndi.setTextSize(25);ndi.setLetterSpacing(.18f);ndi.setTextColor(Color.WHITE);ndi.setTypeface(Typeface.create("sans-serif-black",Typeface.BOLD));ndi.setIncludeFontPadding(false);words.addView(ndi);
+   TextView cast=new TextView(c);cast.setText("SCREENCAST");cast.setTextSize(10);cast.setLetterSpacing(.16f);cast.setTextColor(0xff4ade80);cast.setTypeface(Typeface.create("sans-serif-medium",Typeface.NORMAL));cast.setIncludeFontPadding(false);words.addView(cast);
+  }
  }
  static final class SoundToggle extends View implements Checkable {
   private boolean checked;private final Paint p=new Paint(3);

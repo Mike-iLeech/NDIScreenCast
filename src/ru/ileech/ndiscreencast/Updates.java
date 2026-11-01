@@ -19,6 +19,7 @@ final class Updates {
  static final String REPO="Mike-iLeech/NDIScreenCast";
  static final String MANIFEST="https://github.com/"+REPO+"/releases/latest/download/update.json";
  static final int JOB=1401;
+ static final long CHECK_INTERVAL_MS=24*60*60*1000L;
  static final AtomicBoolean busy=new AtomicBoolean();
  static volatile String status="Проверка ещё не выполнялась";
  private static long offeredVersion=-1;
@@ -28,15 +29,17 @@ final class Updates {
  static void schedule(Context c){
   JobScheduler scheduler=c.getSystemService(JobScheduler.class);
   if(!prefs(c).getBoolean("autoUpdate",true)){scheduler.cancel(JOB);return;}
-  if(scheduler.getPendingJob(JOB)==null)scheduler.schedule(new JobInfo.Builder(JOB,new ComponentName(c,UpdateJob.class)).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPeriodic(6*60*60*1000L).setPersisted(true).build());
+  JobInfo existing=scheduler.getPendingJob(JOB);
+  if(existing==null||existing.getIntervalMillis()!=CHECK_INTERVAL_MS)scheduler.schedule(new JobInfo.Builder(JOB,new ComponentName(c,UpdateJob.class)).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPeriodic(CHECK_INTERVAL_MS).setPersisted(true).build());
  }
  static final class Request { volatile boolean canceled; volatile HttpURLConnection connection; void cancel(){canceled=true;HttpURLConnection c=connection;if(c!=null)c.disconnect();} }
  static Request check(Context context,boolean manual,Runnable done){
   Request request=new Request();
   Context c=context.getApplicationContext();
-  if(!manual&&(!prefs(c).getBoolean("autoUpdate",true)||System.currentTimeMillis()-prefs(c).getLong("lastUpdateCheck",0)<6*60*60*1000L)){if(done!=null)main.post(()->{if(!request.canceled)done.run();});return request;}
+  if(!manual&&(!prefs(c).getBoolean("autoUpdate",true)||System.currentTimeMillis()-prefs(c).getLong("lastUpdateCheck",0)<CHECK_INTERVAL_MS)){if(done!=null)main.post(()->{if(!request.canceled)done.run();});return request;}
   if(!busy.compareAndSet(false,true)){if(done!=null)main.post(()->{if(!request.canceled)done.run();});return request;}
   if(manual)offeredVersion=-1;
+  prefs(c).edit().putLong("lastUpdateCheck",System.currentTimeMillis()).apply();
   status="Проверка GitHub Releases…";
   new Thread(()->{
    File temp=new File(c.getFilesDir(),"update.apk.part");
@@ -47,7 +50,6 @@ final class Updates {
     }
     long installed=c.getPackageManager().getPackageInfo(c.getPackageName(),0).getLongVersionCode();
     long version=manifest.getLong("versionCode");
-    prefs(c).edit().putLong("lastUpdateCheck",System.currentTimeMillis()).apply();
     if(version<=installed){status="Установлена последняя версия";return;}
     if(apk(c).isFile()&&valid(c,apk(c),version)){status="Обновление готово к установке";notifyReady(c);return;}
     String url=manifest.getString("apkUrl"),digest=manifest.getString("sha256");
@@ -65,7 +67,7 @@ final class Updates {
     if(!hex(sha.digest()).equalsIgnoreCase(digest)||!valid(c,temp,version))throw new IOException("Не совпадает подпись, версия или SHA-256 APK");
     if(!temp.renameTo(apk(c)))throw new IOException("Не удалось сохранить обновление");
     status="Обновление готово к установке";notifyReady(c);
-   }catch(Exception e){temp.delete();status=request.canceled?"Проверка отложена":"Не удалось обновить: "+e.getMessage();prefs(c).edit().putLong("lastUpdateCheck",0).apply();}
+   }catch(Exception e){temp.delete();status=request.canceled?"Проверка отложена":"Не удалось обновить: "+e.getMessage();if(request.canceled)prefs(c).edit().putLong("lastUpdateCheck",0).apply();}
    finally{request.connection=null;busy.set(false);if(done!=null)main.post(()->{if(!request.canceled)done.run();});}
   },"GitHub release updater").start();
   return request;
