@@ -39,10 +39,10 @@ if(!(Test-Path signing\release.jks)){
  & "$env:JAVA_HOME\bin\keytool.exe" -genkeypair -keystore signing\release.jks -storepass $env:NDI_SIGNING_PASSWORD -keypass $env:NDI_SIGNING_PASSWORD -alias ndicast -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=NDI ScreenCast, OU=Personal, O=iLeech, C=RU'
  Check
 }
-& "$bt\apksigner.bat" sign --ks signing\release.jks --ks-key-alias ndicast --ks-pass env:NDI_SIGNING_PASSWORD --out dist\NDIScreenCast-1.4.apk build\aligned.apk
+& "$bt\apksigner.bat" sign --ks signing\release.jks --ks-key-alias ndicast --ks-pass env:NDI_SIGNING_PASSWORD --out dist\NDIScreenCast-1.5.apk build\aligned.apk
 Check
-& "$bt\apksigner.bat" verify --verbose dist\NDIScreenCast-1.4.apk
+& "$bt\apksigner.bat" verify --verbose dist\NDIScreenCast-1.5.apk
 Check
-& "$bt\zipalign.exe" -c -P 16 4 dist\NDIScreenCast-1.4.apk
+& "$bt\zipalign.exe" -c -P 16 4 dist\NDIScreenCast-1.5.apk
 Check
-Get-FileHash dist\NDIScreenCast-1.4.apk -Algorithm SHA256 | Format-List
+Get-FileHash dist\NDIScreenCast-1.5.apk -Algorithm SHA256 | Format-List
